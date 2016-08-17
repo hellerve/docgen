@@ -1,0 +1,86 @@
+(load "mustache/mustache")
+
+(define (collect coll elems)
+  "gets all the values from coll that are in elems
+
+   params:
+        - coll:  the collection
+        - elems: the elements
+   complexity: O(k*n)
+   returns: a list of elems"
+  (hash:filter-by-keys ($ (in? elems %)) coll))
+
+(define (function:info function)
+  (define (treat-params params)
+    (let ((kv-list (filter ($ (in? % ":")) (string:split params #\newline))))
+      (make-hash (map ($ (map string:trim (string:split % ":"))) kv-list))))
+  (let* ((doc    (function:docstring function))
+         (split  (string:split doc "params:"))
+         (text   (car split))
+         (params (cadr split))
+         (split  (string:split params "complexity:"))
+         (params (treat-params (car split)))
+         (complx (cadr split))
+         (split  (string:split complx "returns:"))
+         (complx (car split))
+         (ret    (cadr split)))
+    (make-hash :params (make-hash (map ($ (list % (get-from params % "No documentation")))
+                                       (function:args function)))
+               :complexity (string:trim complx)
+               :docs (string:trim text)
+               :returns (string:trim ret))))
+
+(define (function:info function)
+  (define (treat-param input info)
+    (let ((split (string:split input #\:)))
+      (hash:update info
+                   "params"
+                   ($ (++ %  (make-hash "pname" (string:trim (car split))
+                                        "doc" (string:trim
+                                                (string:join (cdr split)
+                                                             #\:))))))))
+
+  (define (sanitize-params params)
+    (let ((saturated (map ($ (% "pname")) params)))
+      (++ params
+          (|> (function:args function)
+              (curry filter ($ (not (in? saturated %))))
+              (curry map ($ (make-hash "pname" %
+                                       "doc" "No documentation")))))))
+
+  (define (treat-params input info)
+    (let loop ((input input)
+               (info info))
+      (let ((first (string:trim (car input))))
+        (if (string:starts-with first "-")
+          (loop (cdr input) (treat-param (cdr first) info))
+          (make-hash :info info :rest input)))))
+
+  (define (treat-regular input info)
+    (let* ((split (string:split (car input) #\:))
+           (key   (string:trim (car split)))
+           (val   (string:trim (string:join (cdr split) #\:))))
+      (make-hash :info (hash:set info key val)
+                 :rest (cdr input))))
+
+  (let ((input (string:split (function:docstring function) "\n\n")))
+    (let loop ((input (string:split (list:last input) #\newline))
+               (info  (make-hash "params" []
+                                 "name" (function:name function)
+                                 "docs" (string:join (list:but-last input)
+                                                    "\n\n"))))
+      (if (null? input)
+        (hash:update info "params" sanitize-params)
+        (let ((parse (string:trim (car input))))
+          (if (string:starts-with parse "params:")
+            (let ((parsed (treat-params (cdr input) info)))
+              (loop (parsed :rest) (parsed :info)))
+            (let ((parsed (treat-regular input info)))
+              (loop (parsed :rest) (parsed :info)))))))))
+
+(define (function:render functions name description)
+  (let ((template (read-contents "partial.zms")))
+    ((import "mustache:template") template
+        (make-hash "name" name
+                   "description" description
+                   "elements" (make-hash "namespace" name "contents" functions)))))

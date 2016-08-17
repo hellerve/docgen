@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html{
+        height: 100%;
+      }
+      body{
+        font-family: sans-serif;
+        font-weight: 300;
+        height: 100%;
+      }
+      a {
+        color: #666;
+        text-decoration: none;
+      }
+      a:hover{
+        color: #000;
+      }
+      h1 {
+        font-size: 28px;
+        font-weight: 300;
+      }
+      h2 {
+        font-size: 25px;
+        font-weight: 300;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: 300;
+      }
+      h4 {
+        font-size: 17px;
+        font-weight: 300;
+      }
+      #fancy-search {
+        border-width: medium medium 1px 1px;
+        border-style: none none solid solid;
+        border-color: #D3D3D3;
+        border-image: none;
+        font-size: 14px;
+        font-style: italic;
+        color: #808080;
+        width: 25em;
+        padding-bottom: 0.3em;
+        margin-top: 2em;
+        margin-bottom: 2em;
+      }
+      #nav{
+        float: left;
+        width: 200px;
+        padding-left: 50px;
+        height: 100%;
+        padding-right: 1em;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        overflow-x: scroll;
+        
+      }
+      #nav ul{
+        list-style: none;
+      }
+      #nav h4 {
+        margin-bottom: 0px;
+      }
+      #docs{
+        padding-left: 50px;
+        margin-left: 260px;
+      }
+      .name{
+        margin: 0;
+      }
+      .fun{
+        padding-left: 10px;
+      }
+      .signature{
+        margin: 3px;
+        color: darkgrey;
+        margin-left: 1em;
+        font-size: 15px;
+      }
+      .description, .param{
+        margin-left: 0.5em;
+      }
+      .nav-contents{
+      }
+      .hidden {
+        display: none;
+      }
+      .clickr {
+        font-size: 12px;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+      filterFuns = function(pattern) {
+        if (pattern === "") {
+          [].slice.call(document.getElementsByClassName("nav-contents")).forEach(function(element) {
+            var title = element.getAttribute("id");
+            var par = document.getElementById(title.replace("-nav", "-expand"));
+
+            toggle(par, false);
+            toggleNamespace(document.getElementById(title.replace("-nav", "-namespace")), true);
+          });
+          return;
+        }
+        [].slice.call(document.getElementsByClassName("nav-contents")).forEach(function(element) {
+          var title = element.getAttribute("id");
+          var par = document.getElementById(title.replace("-nav", "-expand"));
+
+          if (title.toLowerCase().contains(pattern.toLowerCase())) {
+            toggleNamespace(document.getElementById(title.replace("-nav", "-namespace")), true);
+            toggle(par, true);
+          } else {
+            toggleNamespace(document.getElementById(title.replace("-nav", "-namespace")), false);
+            toggle(par, false);
+          }
+        });
+      };
+      const PROP = "hidden";
+      toggleNamespace = function(el, show) {
+        show ? el.classList.remove(PROP) : el.classList.add(PROP);
+      };
+      toggle = function(el, force) {
+          innerEl = document.getElementById(el.getAttribute("id").replace("-expand", "-nav"));
+
+          if ((innerEl.classList.contains(PROP) && force !== false) || force === true) {
+            el.innerHTML = "Click to hide";
+            innerEl.classList.remove(PROP);
+          } else {
+            el.innerHTML = "Click to expand";
+            innerEl.classList.add(PROP)
+          }
+      };
+      document.addEventListener("DOMContentLoaded", function() { 
+        function toggleView(ev) {
+          var el = ev.target;
+          toggle(el);
+        }
+        [].slice.call(document.getElementsByClassName("nav-contents")).forEach(function(el) {
+          var name = el.getAttribute("id");
+          var par = document.getElementById(name.replace("-nav", "-expand"));
+          par.addEventListener("click", toggleView);
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="nav">
+      <h3>Functions</h3>
+      <input id="fancy-search" onkeyup="filterFuns(this.value)" placeholder="Search a Function" type="text"></input>
+      {{#elements}}
+        <div id="{{namespace}}-namespace">
+          <h4><a href="#{{namespace}}">{{namespace}}</a></h4>
+          <span id="{{namespace}}-expand" class="clickr">Click to expand</span>
+          <div id="{{namespace}}-nav" class="nav-contents hidden">
+            <ul>
+              {{#contents}}
+              <li><a href="#{{name}}">{{name}}</a></li>
+              {{/contents}}
+            </ul>
+          </div>
+        </div>
+      {{/elements}}
+    </div>
+    <div id="docs">
+      <h1>{{name}}</h1>
+      <span class="description">{{description}}</span>
+      {{#elements}}
+      <h2 id="{{namespace}}">{{namespace}}</h2>
+      {{#contents}}
+        <div class="fun">
+          <h3 id="{{name}}"class="name">({{name}}{{#params}} <a href="#{{name}}.{{pname}}">{{pname}}</a>{{/params}})</h3>
+          <p class="description">{{docs}}</p>
+          <b>Parameters:</b>
+          {{#params}}
+          <p class="param" id="{{name}}.{{pname}}"><i>{{pname}}</i>: {{doc}}</p>
+          {{/params}}
+          <p class="complexity"><b>Complexity:</b> {{complexity}}</p>
+          <p class="returns"><b>Returns:</b> {{returns}}</p>
+          </div>
+        </div>
+      {{/contents}}
+      {{/elements}}
+    </div>
+  </body>
+</html>
