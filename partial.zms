@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script defer src="./highlight/prism.js"></script>
+    <link rel="stylesheet" href="./highlight/prism.css">
     <style>
       html{
         height: 100%;
@@ -73,6 +75,13 @@
       }
       .fun{
         padding-left: 10px;
+        margin-bottom: 2em;
+      }
+      .fun a {
+        color: #55c;
+      }
+      .a-little-right {
+        padding-left: 1em;
       }
       .signature{
         margin: 3px;
@@ -144,6 +153,38 @@
           var par = document.getElementById(name.replace("-nav", "-expand"));
           par.addEventListener("click", toggleView);
         });
+        [].slice.call(document.getElementsByTagName("fun")).forEach(function(el) {
+          //sorry
+          var newEl = document.createElement("a");
+
+          newEl.href = "#" + el.innerHTML;
+
+          newEl.innerHTML = el.innerHTML;
+
+          el.parentNode.replaceChild(newEl, el);
+        });
+        [].slice.call(document.getElementsByTagName("par")).forEach(function(el) {
+          //sorry
+          var newEl = document.createElement("a");
+          var funName = el.parentNode.parentNode.parentNode.id;
+
+          newEl.href = "#" + funName + "." + el.innerHTML;
+          console.log(newEl.href)
+
+          newEl.innerHTML = el.innerHTML;
+
+          el.parentNode.replaceChild(newEl, el);
+        });
+        [].slice.call(document.getElementsByTagName("zepto")).forEach(function(el) {
+          //sorry
+          var newEl = document.createElement("span");
+
+          newEl.innerHTML = el.innerHTML;
+
+          newEl.classList.add("language-scheme");
+          el.parentNode.replaceChild(newEl, el);
+          Prism.highlightElement(newEl);
+        });
       });
     </script>
   </head>
@@ -171,15 +212,16 @@
       {{#elements}}
       <h2 id="{{namespace}}">{{namespace}}</h2>
       {{#contents}}
-        <div class="fun">
-          <h3 id="{{name}}"class="name">({{name}}{{#params}} <a href="#{{name}}.{{pname}}">{{pname}}</a>{{/params}})</h3>
-          <p class="description">{{docs}}</p>
-          <b>Parameters:</b>
-          {{#params}}
-          <p class="param" id="{{name}}.{{pname}}"><i>{{pname}}</i>: {{doc}}</p>
-          {{/params}}
-          <p class="complexity"><b>Complexity:</b> {{complexity}}</p>
-          <p class="returns"><b>Returns:</b> {{returns}}</p>
+        <div class="fun" id="{{name}}">
+          <h3 class="name">({{name}}{{#params}} <a href="#{{name}}.{{pname}}">{{pname}}</a>{{/params}}) {{#primitive?}}<b>[primitive]</b>{{/primitive?}}</h3>
+          <div class="a-little-right">
+            <p class="description">{{{docs}}}</p>
+            <b>Parameters:</b>
+            {{#params}}
+            <p class="param" id="{{name}}.{{pname}}"><i>{{pname}}</i>: {{{doc}}}</p>
+            {{/params}}
+            <p class="complexity"><b>Complexity:</b> {{{complexity}}}</p>
+            <p class="returns"><b>Returns:</b> {{{returns}}}</p>
           </div>
         </div>
       {{/contents}}

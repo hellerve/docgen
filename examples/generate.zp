@@ -1,0 +1,2 @@
+(load "docgen")
+(with-output-file "global.html" (curry write (function:render-all)))
