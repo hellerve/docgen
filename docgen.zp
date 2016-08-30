@@ -44,13 +44,13 @@
                   (help (function:name function))
                   (function:docstring function)))
          (input (string:split doc "\n\n"))
-         (info (make-hash "params" (sanitize-params [])
+         (info (make-hash "params" []
                           "complexity" "N.A."
                           "returns" "N.A."
                           "primitive?" (primitive? function)
                           "name" (function:name function))))
     (if (eq? (length input) 1)
-      (hash:set info "docs" (car input))
+      (hash:set (hash:set info "docs" (car input)) "params" (sanitize-params []))
       (let loop ((input (string:split (list:last input) #\newline))
                  (info (hash:set info "docs" (string:join (list:but-last input) "\n\n"))))
         (if (null? input)
