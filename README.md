@@ -2,18 +2,19 @@
 
 A tool for automatic documentation generation in zepto.
 
-## Installation
-
-```
-zeps install zepto-lang/docgen
-```
+It is basically the material from zeps' `docgen` command
+as a standalone library.
 
 ## Usage
 
 The idea is to provide automatic documentation generation
 from docstrings with a common, extensible format.
 
-It should also be included in zeps' core at some point.
+Read more about the format and output [here](https://github.com/zeps-system/zeps#documenting-packages)!
+
+## Shoutouts
+
+The syntax highlighting is courtesy of [prism](http://prismjs.com/).
 
 <hr/>
 

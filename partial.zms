@@ -169,7 +169,6 @@
           var funName = el.parentNode.parentNode.parentNode.id;
 
           newEl.href = "#" + funName + "." + el.innerHTML;
-          console.log(newEl.href)
 
           newEl.innerHTML = el.innerHTML;
 
