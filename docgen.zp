@@ -1,9 +1,10 @@
 (load "mustache/mustache")
 
-(define (function:info function)
+(define (function:info name function)
   "gets the information on a function as a hashmap.
 
   params:
+    - name: the function name (required so that it works with lambdas)
     - function: the function to document
   complexity: O(1)
   returns: a hashmap with the keys <i>name</i>, <i>docs</i>, <i>params</i>, <i>complexity</i>, <i>primitive?</i>, and <i>returns</i>"
@@ -27,10 +28,12 @@
   (define (treat-params input info)
     (let loop ((input input)
                (info info))
-      (let ((first (string:trim (car input))))
-        (if (string:starts-with first "-")
-          (loop (cdr input) (treat-param (cdr first) info))
-          (make-hash :info info :rest input)))))
+      (if (null? input)
+        (make-hash :info info :rest input)
+        (let ((first (string:trim (car input))))
+          (if (string:starts-with first "-")
+            (loop (cdr input) (treat-param (cdr first) info))
+            (make-hash :info info :rest input))))))
 
   (define (treat-regular input info)
     (let* ((split (string:split (car input) #\:))
@@ -48,7 +51,7 @@
                           "complexity" "N.A."
                           "returns" "N.A."
                           "primitive?" (primitive? function)
-                          "name" (function:name function))))
+                          "name" name)))
     (if (eq? (length input) 1)
       (hash:set (hash:set info "docs" (car input)) "params" (sanitize-params []))
       (let loop ((input (string:split (list:last input) #\newline))
@@ -93,11 +96,11 @@
    complexity: O(n) (where n is the number of definitions)
    returns: the templated string"
   (let ((global (env->hashmap env))
-        (filter-fun ($ (and (callable? %)
-                            (not (eq? "lambda" (function:name %)))
-                            (or (primitive? %)
-                                (not (eq? "do not expose" (function:docstring %))))))))
-    (function:render (map function:info
-                          (hash:values-filter filter-fun global))
+        (filter-fun ($ (and (callable? (cadr %))
+                            (or (primitive? (cadr %))
+                                (not (in? ["lambda" "do not expose"]
+                                          (function:docstring (cadr %)))))))))
+    (function:render (map (curry apply function:info)
+                          (hash:kv-filter filter-fun global))
                      "global"
                      "The documentation of the global environment")))
