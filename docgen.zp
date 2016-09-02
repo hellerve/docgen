@@ -20,7 +20,9 @@
   (define (sanitize-params params)
     (let ((saturated (map ($ (% "pname")) params)))
       (++ params
-          (|> (if (primitive? function) [] (function:args function))
+          (|> (if (or (macro? function) (primitive? function))
+                []
+                (function:args function))
               (curry filter ($ (not (in? saturated %))))
               (curry map ($ (make-hash "pname" %
                                        "doc" "No documentation")))))))
@@ -96,7 +98,8 @@
    complexity: O(n) (where n is the number of definitions)
    returns: the templated string"
   (let ((global (env->hashmap env))
-        (filter-fun ($ (and (callable? (cadr %))
+        (filter-fun ($ (and (or (callable? (cadr %))
+                                (macro? (cadr %)))
                             (or (primitive? (cadr %))
                                 (not (in? ["lambda" "do not expose"]
                                           (function:docstring (cadr %)))))))))
